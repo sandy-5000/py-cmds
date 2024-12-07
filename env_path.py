@@ -30,7 +30,7 @@ class PathEditor:
                 r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment",
                 0, winreg.KEY_SET_VALUE,
             )
-            winreg.SetValueEx(registry_key, "Path", 0, winreg.REG_EXPAND_SZ, new_path)
+            winreg.SetValueEx(registry_key, "PATH", 0, winreg.REG_EXPAND_SZ, new_path)
             winreg.CloseKey(registry_key)
         except PermissionError:
             print("Permission denied. Please run the script as an Administrator.")
@@ -39,11 +39,34 @@ class PathEditor:
 
 
     def get_local_path(self):
-        return os.environ.get('PATH', '')
+        try:
+            registry_key = winreg.OpenKey(
+                winreg.HKEY_CURRENT_USER,
+                r"Environment",
+                0, winreg.KEY_READ
+            )
+            user_path, _ = winreg.QueryValueEx(registry_key, "PATH")
+            winreg.CloseKey(registry_key)
+            return user_path
+        except FileNotFoundError:
+            return ''
+        except Exception as e:
+            print(f"An error occurred while reading the user PATH: {e}")
+            return ''
 
 
     def set_local_path(self, new_path):
-        os.environ['PATH'] = new_path
+        try:
+            registry_key = winreg.OpenKey(
+                winreg.HKEY_CURRENT_USER,
+                r"Environment",
+                0, winreg.KEY_SET_VALUE
+            )
+            winreg.SetValueEx(registry_key, "PATH", 0, winreg.REG_EXPAND_SZ, new_path)
+            winreg.CloseKey(registry_key)
+            ctypes.windll.user32.SendMessageW(0xFFFF, 0x1A, 0, 0)
+        except Exception as e:
+            print(f"An error occurred while setting the user PATH: {e}")
 
 
     def get_path(self):
