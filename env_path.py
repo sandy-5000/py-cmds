@@ -1,4 +1,3 @@
-import os
 import winreg
 import ctypes
 
@@ -114,7 +113,6 @@ class PathEditor:
             raise Exception('Enter a valid position')
         if not self.position_in_range(position):
             raise Exception('Enter position in the given path index range')
-        print(position)
         paths = self.get_path().split(';')
         paths.pop(position - 1)
         new_path, visited_paths = [], set()
